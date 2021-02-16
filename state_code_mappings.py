@@ -1,0 +1,221 @@
+state_code_mappings = [{
+    'state': 'Alabama',
+    'state_code': 'AL',
+    'fips': '01'
+}, {
+    'state': 'Alaska',
+    'state_code': 'AK',
+    'fips': '02'
+}, {
+    'state': 'Arizona',
+    'state_code': 'AZ',
+    'fips': '04'
+}, {
+    'state': 'Arkansas',
+    'state_code': 'AR',
+    'fips': '05'
+}, {
+    'state': 'California',
+    'state_code': 'CA',
+    'fips': '06'
+}, {
+    'state': 'Colorado',
+    'state_code': 'CO',
+    'fips': '08'
+}, {
+    'state': 'Connecticut',
+    'state_code': 'CT',
+    'fips': '09'
+}, {
+    'state': 'Delaware',
+    'state_code': 'DE',
+    'fips': '10'
+}, {
+    'state': 'Florida',
+    'state_code': 'FL',
+    'fips': '12'
+}, {
+    'state': 'Georgia',
+    'state_code': 'GA',
+    'fips': '13'
+}, {
+    'state': 'Hawaii',
+    'state_code': 'HI',
+    'fips': '15'
+}, {
+    'state': 'Idaho',
+    'state_code': 'ID',
+    'fips': '16'
+}, {
+    'state': 'Illinois',
+    'state_code': 'IL',
+    'fips': '17'
+}, {
+    'state': 'Indiana',
+    'state_code': 'IN',
+    'fips': '18'
+}, {
+    'state': 'Iowa',
+    'state_code': 'IA',
+    'fips': '19'
+}, {
+    'state': 'Kansas',
+    'state_code': 'KS',
+    'fips': '20'
+}, {
+    'state': 'Kentucky',
+    'state_code': 'KY',
+    'fips': '21'
+}, {
+    'state': 'Louisiana',
+    'state_code': 'LA',
+    'fips': '22'
+}, {
+    'state': 'Maine',
+    'state_code': 'ME',
+    'fips': '23'
+}, {
+    'state': 'Maryland',
+    'state_code': 'MD',
+    'fips': '24'
+}, {
+    'state': 'Massachusetts',
+    'state_code': 'MA',
+    'fips': '25'
+}, {
+    'state': 'Michigan',
+    'state_code': 'MI',
+    'fips': '26'
+}, {
+    'state': 'Minnesota',
+    'state_code': 'MN',
+    'fips': '27'
+}, {
+    'state': 'Mississippi',
+    'state_code': 'MS',
+    'fips': '28'
+}, {
+    'state': 'Missouri',
+    'state_code': 'MO',
+    'fips': '29'
+}, {
+    'state': 'Montana',
+    'state_code': 'MT',
+    'fips': '30'
+}, {
+    'state': 'Nebraska',
+    'state_code': 'NE',
+    'fips': '31'
+}, {
+    'state': 'Nevada',
+    'state_code': 'NV',
+    'fips': '32'
+}, {
+    'state': 'New Hampshire',
+    'state_code': 'NH',
+    'fips': '33'
+}, {
+    'state': 'New Jersey',
+    'state_code': 'NJ',
+    'fips': '34'
+}, {
+    'state': 'New Mexico',
+    'state_code': 'NM',
+    'fips': '35'
+}, {
+    'state': 'New York',
+    'state_code': 'NY',
+    'fips': '36'
+}, {
+    'state': 'North Carolina',
+    'state_code': 'NC',
+    'fips': '37'
+}, {
+    'state': 'North Dakota',
+    'state_code': 'ND',
+    'fips': '38'
+}, {
+    'state': 'Ohio',
+    'state_code': 'OH',
+    'fips': '39'
+}, {
+    'state': 'Oklahoma',
+    'state_code': 'OK',
+    'fips': '40'
+}, {
+    'state': 'Oregon',
+    'state_code': 'OR',
+    'fips': '41'
+}, {
+    'state': 'Pennsylvania',
+    'state_code': 'PA',
+    'fips': '42'
+}, {
+    'state': 'Rhode Island',
+    'state_code': 'RI',
+    'fips': '44'
+}, {
+    'state': 'South Carolina',
+    'state_code': 'SC',
+    'fips': '45'
+}, {
+    'state': 'South Dakota',
+    'state_code': 'SD',
+    'fips': '46'
+}, {
+    'state': 'Tennessee',
+    'state_code': 'TN',
+    'fips': '47'
+}, {
+    'state': 'Texas',
+    'state_code': 'TX',
+    'fips': '48'
+}, {
+    'state': 'Utah',
+    'state_code': 'UT',
+    'fips': '49'
+}, {
+    'state': 'Vermont',
+    'state_code': 'VT',
+    'fips': '50'
+}, {
+    'state': 'Virginia',
+    'state_code': 'VA',
+    'fips': '51'
+}, {
+    'state': 'Washington',
+    'state_code': 'WA',
+    'fips': '53'
+}, {
+    'state': 'West Virginia',
+    'state_code': 'WV',
+    'fips': '54'
+}, {
+    'state': 'Wisconsin',
+    'state_code': 'WI',
+    'fips': '55'
+}, {
+    'state': 'Wyoming',
+    'state_code': 'WY',
+    'fips': '56'
+}, {
+    'state': 'American Samoa',
+    'state_code': 'AS',
+    'fips': '60'
+}, {
+    'state': 'Guam',
+    'state_code': 'GU',
+    'fips': '66'
+}, {
+    'state': 'Northern Mariana Islands',
+    'state_code': 'MP',
+    'fips': '69'
+}, {
+    'state': 'Puerto Rico',
+    'state_code': 'PR',
+    'fips': '72'
+}, {
+    'state': 'Virgin Islands',
+    'state_code': 'VI',
+    'fips': '78'
+}]
