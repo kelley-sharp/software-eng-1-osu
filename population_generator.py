@@ -4,13 +4,14 @@ from tkinter.filedialog import askopenfilename
 from tkinter.messagebox import showerror
 from state_code_mappings import state_code_mappings
 from api_key import key
+import argparse
 import csv
 import requests
 
 
 class PopulationGenerator:
 
-    def __init__(self):
+    def __init__(self, filename):
         # main window
         self.window = tk.Tk()
         self.window.title("Kelley's Population Generator")
@@ -20,12 +21,18 @@ class PopulationGenerator:
         self.search_result = ("", "", "")
         self.years = tuple(reversed([str(year) for year in range(2010, 2020)]))
         self.states = tuple([state_code_mapping['state_code'] for state_code_mapping in state_code_mappings])
-        self.state_combobox = None
+        self.state_code = tk.StringVar()
+        self.state_code_combobox = None
+        self.year = tk.StringVar()
         self.year_combobox = None
         self.create_search_form()
         # data table
         self.table = None
         self.create_data_output_area()
+
+        if filename:
+            self.handle_import_csv(filename)
+            self.handle_submit(year=self.year.get(), state_code=self.state_code.get())
 
     def start(self):
         self.window.mainloop()
@@ -44,12 +51,10 @@ class PopulationGenerator:
         search_frame = tk.Frame(master=search_form)
 
         input_year_label = tk.Label(search_frame, text="US Census Year:")
-        year = tk.StringVar()
-        self.year_combobox = ttk.Combobox(search_frame, textvariable=year, values=self.years)
+        self.year_combobox = ttk.Combobox(search_frame, textvariable=self.year, values=self.years)
 
         input_state_label = tk.Label(search_frame, text="US State:")
-        state_code = tk.StringVar()
-        self.state_combobox = ttk.Combobox(search_frame, textvariable=state_code, values=self.states)
+        self.state_code_combobox = ttk.Combobox(search_frame, textvariable=self.state_code, values=self.states)
 
         btn_import = tk.Button(
             master=search_frame,
@@ -66,13 +71,13 @@ class PopulationGenerator:
             width=5,
             height=0,
             fg="blue",
-            command=lambda: self.handle_submit(year=year.get(), state_code=state_code.get())
+            command=lambda: self.handle_submit(year=self.year.get(), state_code=self.state_code.get())
         )
 
         input_year_label.grid(row=0, column=0)
         self.year_combobox.grid(row=0, column=1)
         input_state_label.grid(row=1, column=0)
-        self.state_combobox.grid(row=1, column=1)
+        self.state_code_combobox.grid(row=1, column=1)
         btn_import.grid(row=3, column=0, pady=10, sticky="w")
         btn_submit.grid(row=3, column=1, pady=10, sticky="e")
         search_frame.grid(row=0, column=0, padx=20, pady=10, sticky="n")
@@ -111,17 +116,17 @@ class PopulationGenerator:
         data_frame.grid(row=1, column=0, padx=20, pady=30, sticky="n")
         data_area.grid(row=1, column=0, padx=20, pady=30, sticky="n")
 
-    def handle_import_csv(self):
-        filename = askopenfilename()
-        if filename:
-            try:
-                # import values from input.csv
-                reader = csv.DictReader(open(filename))
-                for row in reader:
-                    self.year_combobox.insert(0, row['input_year'])
-                    self.state_combobox.insert(0, row['input_state'])
-            except Exception:
-                showerror(message="Sorry, failed to read file")
+    def handle_import_csv(self, filename):
+        if not filename:
+            filename = askopenfilename()
+        try:
+            # import values from input.csv
+            reader = csv.DictReader(open(filename))
+            for row in reader:
+                self.set_year(row['input_year'])
+                self.set_state_code(row['input_state'])
+        except Exception:
+            showerror(message="Sorry, failed to read file")
 
     # def handle_export_csv(self):
         # write output.csv
@@ -134,26 +139,37 @@ class PopulationGenerator:
         baseUrl = "https://api.census.gov/data"
         dataset = "acs/acs1"
         variables = "B01003_001E"
-        state_fips_code = [state_code_mapping["fips"] for state_code_mapping in state_code_mappings if state_code_mapping["state_code"] == state_code][0]
+        state_fips_code = self.get_fips_from_state_code(state_code)
         url = f"{baseUrl}/{year}/{dataset}?get=NAME,{variables}&for=state:{state_fips_code}&key={key}"
-        print(url)
         response = requests.get(url)
 
-        if response.status_code == 200:
-            print('Success!')
-        elif response.status_code == 404:
-            print('Not Found.')
+        if response.status_code == 404:
+            showerror(message="Sorry, no data was found for these variables.")
         elif response.status_code >= 400:
-            print('An error occurred')
-
-        print(response)
+            showerror(message="Whoops! Something bad happened. Please check your inputs and try again.")
 
         body = response.json()
         self.search_result = (year, state_code, body[1][1])
         self.search_result_id += 1
         self.table.insert(parent='', index=0, id=str(self.search_result_id), values=self.search_result)
 
+    def set_year(self, year):
+        self.year.set(year)
+    
+    def set_state_code(self, state_code):
+        self.state_code.set(state_code)
+
+    def get_fips_from_state_code(self, state_code):
+        state_fips_code = [state_code_mapping["fips"] for state_code_mapping in state_code_mappings if state_code_mapping["state_code"] == state_code][0]
+        return state_fips_code
+
 
 if __name__ == '__main__':
-    p = PopulationGenerator()
+    # allow an optional filename to be passed as a position argument
+    parser = argparse.ArgumentParser(description="This GUI will search the US Census Bureau API for population data.")
+    parser.add_argument('input_csv', metavar='input.csv', type=str, nargs="?",
+                        help='Path to csv with input_year and input_state columns')
+    args = parser.parse_args()
+
+    p = PopulationGenerator(filename=args.input_csv)
     p.start()
