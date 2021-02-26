@@ -134,8 +134,9 @@ class PopulationGenerator:
         try:
             filename = tk.filedialog.asksaveasfilename()
             if filename:
-                # ensure the file ending is "".csv"
+                # ensure the file ending is ".csv"
                 filename = f'{filename}.csv' if "csv" not in filename else filename
+                # write the output file
                 with open(filename, 'w') as output_csv:
                     fields = ['input_year', 'input_state', 'output_population_size']
                     output_writer = csv.DictWriter(output_csv, fieldnames=fields)
@@ -183,6 +184,8 @@ class PopulationGenerator:
     def get_fips_from_state_code(self, state_code):
         state_fips_code = [state_code_mapping["fips"] for state_code_mapping in state_code_mappings if state_code_mapping["state_code"] == state_code][0]
         return state_fips_code
+
+class HTTPRequestHandler 
 
 
 if __name__ == '__main__':
