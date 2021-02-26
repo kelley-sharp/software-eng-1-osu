@@ -3,10 +3,15 @@ from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 from tkinter.messagebox import showerror, showinfo
 from state_code_mappings import state_code_mappings
+from http.server import HTTPServer, BaseHTTPRequestHandler
 from api_key import key
 import argparse
 import csv
 import requests
+import json
+
+search_result_id = 0
+search_result = ("", "", "", "")
 
 
 class PopulationGenerator:
@@ -17,8 +22,8 @@ class PopulationGenerator:
         self.window.title("Kelley's Population Generator")
         self.configure_window()
         # search form
-        self.search_result_id = 0
-        self.search_result = ("", "", "")
+        # self.search_result_id = 0
+        # self.search_result = ("", "", "", "")
         self.years = tuple(reversed([str(year) for year in range(2010, 2020)]))
         self.states = tuple([state_code_mapping['state_code'] for state_code_mapping in state_code_mappings])
         self.state_code_strvar = tk.StringVar()
@@ -100,7 +105,7 @@ class PopulationGenerator:
         self.table.heading('input_state', text="US State", anchor="w")
         self.table.heading('output_population_size', text="Population Size", anchor="w")
         # insert data into the tree
-        self.table.insert(parent='', index=0, id=str(self.search_result_id), values=self.search_result)
+        self.table.insert(parent='', index=0, id=str(search_result_id), values=search_result)
         # create export button
         btn_export = tk.Button(
             master=data_frame,
@@ -141,9 +146,9 @@ class PopulationGenerator:
                     fields = ['input_year', 'input_state', 'output_population_size']
                     output_writer = csv.DictWriter(output_csv, fieldnames=fields)
                     output_writer.writeheader()
-                    output_writer.writerow({'input_year': self.search_result[0],
-                                            'input_state': self.search_result[1],
-                                            'output_population_size': self.search_result[2]})
+                    output_writer.writerow({'input_year': search_result[0],
+                                            'input_state': search_result[1],
+                                            'output_population_size': search_result[2]})
                 showinfo(message="File saved successfully!")
         except Exception:
             showerror(message="Error saving file. Please try again.")
@@ -169,11 +174,13 @@ class PopulationGenerator:
             return
 
         body = response.json()
-        self.search_result = (year, state_code, body[1][1])
+        search_result = (year, state_code, body[1][1], "Hobbies")
         self.table.delete(self.table.get_children())
-        self.search_result_id += 1
-        self.table.insert(parent='', index=0, id=str(self.search_result_id), values=self.search_result)
+        # search_result_id += 1
+        self.table.insert(parent='', index=0, id=str(search_result_id), values=search_result)
         self.window.update()
+
+        self.run_server()
 
     def set_year(self, year):
         self.year_strvar.set(year)
@@ -185,7 +192,27 @@ class PopulationGenerator:
         state_fips_code = [state_code_mapping["fips"] for state_code_mapping in state_code_mappings if state_code_mapping["state_code"] == state_code][0]
         return state_fips_code
 
-class HTTPRequestHandler 
+    # def make_handler_class_with_args(self, search_result_object):
+    class HTTPRequestHandler(BaseHTTPRequestHandler):
+        def _set_headers(self):
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.end_headers()
+
+        def do_HEAD(self):
+            self._set_headers()
+
+        def do_GET(self):
+            response_obj = {'selected_product_category': search_result[3],
+                            'population_size': search_result[2]}
+
+            self.wfile.write((json.dumps(response_obj)).encode("utf8"))
+
+    def run_server(self, server_class=HTTPServer, handler_class=HTTPRequestHandler, addr="localhost", port=8000):
+        server_address = (addr, port)
+        my_server = server_class(server_address, handler_class)
+        print(f"Starting http server on {addr}:{port}")
+        my_server.serve_forever()
 
 
 if __name__ == '__main__':
@@ -197,3 +224,4 @@ if __name__ == '__main__':
 
     p = PopulationGenerator(filename=args.input_csv)
     p.start()
+
