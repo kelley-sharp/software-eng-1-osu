@@ -5,6 +5,7 @@
     "nargs",
     "padx",
     "pady",
+    "wfile",
     "winfo"
   ]
 }
