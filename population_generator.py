@@ -4,8 +4,8 @@ from tkinter.filedialog import askopenfilename
 from tkinter.messagebox import showerror, showinfo
 from state_code_mappings import state_code_mappings
 from http.server import HTTPServer, SimpleHTTPRequestHandler
-from api_key import key
 from threading import Thread
+from api_key import key
 import argparse
 import csv
 import requests
@@ -13,26 +13,28 @@ import json
 
 
 class SearchResult:
-    def __init__(self, id: int, year: int, state_code: str, population_size: int):
+    def __init__(self, id: int, year: int, state_code: str, population_size: int, product_category: str):
         self.id = id
         self.year = year
         self.state_code = state_code
         self.population_size = population_size
+        self.product_category = product_category
 
 
 class SearchResults:
     def __init__(self):
         self.latest_search_result_id = 0
         self.data = []  # store a list of search results
-    
-    def add_result(self, year: int, state_code: str, population_size: int) -> None:
+
+    def add_result(self, year: int, state_code: str, population_size: int, product_category: str) -> None:
         self.latest_search_result_id += 1
         result = SearchResult(id=self.latest_search_result_id,
                               year=year,
                               state_code=state_code,
-                              population_size=population_size)
+                              population_size=population_size,
+                              product_category=product_category)
         self.data.append(result)
-    
+
     def get_latest_result(self) -> SearchResult:
         if len(self.data) == 0:
             return None
@@ -53,6 +55,8 @@ class PopulationGenerator:
             state_code_mapping['state_code']
             for state_code_mapping in state_code_mappings
         ])
+        self.product_categories = self.get_product_categories()
+        self.product_category_strvar = tk.StringVar()
         self.state_code_strvar = tk.StringVar()
         self.state_code_combobox = None
         self.year_strvar = tk.StringVar()
@@ -72,6 +76,18 @@ class PopulationGenerator:
         self.run_server()
         # Start up the GUI
         self.window.mainloop()
+
+    def get_product_categories(self) -> list:
+        # url = "localhost:8000/cgi-bin/categories"
+        # response = requests.get(url)
+        # return response
+
+        # temporary process to emulate response from Kelley R.'s server
+        with open('./sample_product_categories.json') as jsonfile:
+            data = json.load(jsonfile)
+            product_categories = tuple(data['sample_product_categories'])
+
+        return product_categories
 
     def configure_window(self) -> None:
         width = 550
@@ -98,6 +114,12 @@ class PopulationGenerator:
             textvariable=self.state_code_strvar,
             values=self.states)
 
+        input_product_category_label = tk.Label(search_frame, text="Product Category:")
+        self.product_category_combobox = ttk.Combobox(
+            search_frame,
+            textvariable=self.product_category_strvar,
+            values=self.product_categories)
+
         btn_import = tk.Button(master=search_frame,
                                text="Import CSV",
                                width=10,
@@ -116,6 +138,8 @@ class PopulationGenerator:
         self.year_combobox.grid(row=0, column=1)
         input_state_label.grid(row=1, column=0)
         self.state_code_combobox.grid(row=1, column=1)
+        input_product_category_label.grid(row=2, column=0)
+        self.product_category_combobox.grid(row=2, column=1)
         btn_import.grid(row=3, column=0, pady=10, sticky="w")
         btn_submit.grid(row=3, column=1, pady=10, sticky="e")
         search_frame.grid(row=0, column=0, padx=20, pady=10, sticky="n")
@@ -155,7 +179,7 @@ class PopulationGenerator:
             self.table.insert(parent='',
                               index=0,
                               id="0",
-                              values=("", "", ""))   
+                              values=("", "", ""))
         # create export button
         btn_export = tk.Button(master=data_frame,
                                text="Export as CSV",
@@ -179,6 +203,7 @@ class PopulationGenerator:
             for row in reader:
                 self.set_year(row['input_year'])
                 self.set_state_code(row['input_state'])
+                self.set_product_category(row['input_product_category'])
         except Exception:
             showerror(message="Sorry, failed to read file")
         self.window.update()
@@ -193,7 +218,7 @@ class PopulationGenerator:
                 # write the output file
                 with open(filename, 'w') as output_csv:
                     fields = [
-                        'input_year', 'input_state', 'output_population_size'
+                        'input_year', 'input_state', 'output_population_size', 'input_product_category'
                     ]
                     output_writer = csv.DictWriter(output_csv,
                                                    fieldnames=fields)
@@ -201,7 +226,8 @@ class PopulationGenerator:
                     output_writer.writerow({
                         'input_year': search_result.year,
                         'input_state': search_result.state_code,
-                        'output_population_size': search_result.population_size
+                        'output_population_size': search_result.population_size,
+                        'input_product_category': search_result.product_category
                     })
                 showinfo(message="File saved successfully!")
         except Exception:
@@ -214,6 +240,7 @@ class PopulationGenerator:
         variables = "B01003_001E"
         state_code = self.state_code_strvar.get()
         year = self.year_strvar.get()
+        product_category = self.product_category_strvar.get()
         state_fips_code = self.get_fips_from_state_code(state_code)
         url = f"{baseUrl}/{year}/{dataset}?get=NAME,{variables}&for=state:{state_fips_code}&key={key}"
         response = requests.get(url)
@@ -230,9 +257,12 @@ class PopulationGenerator:
             return
 
         body = response.json()
-        self.search_results.add_result(year=int(year), state_code=state_code, population_size=int(body[1][1]))
+        self.search_results.add_result(year=int(year),
+                                       state_code=state_code,
+                                       population_size=int(body[1][1]),
+                                       product_category=product_category)
         search_result = search_results.get_latest_result()
-        table_values = (search_result.year, search_result.state_code, search_result.population_size)
+        table_values = (search_result.year, search_result.state_code, search_result.population_size, search_result.product_category)
         self.table.delete(self.table.get_children())
         # search_result_id += 1
         self.table.insert(parent='',
@@ -246,6 +276,9 @@ class PopulationGenerator:
 
     def set_state_code(self, state_code: str) -> None:
         self.state_code_strvar.set(state_code)
+
+    def set_product_category(self, product_category: str) -> None:
+        self.product_category_strvar.set(product_category)
 
     def get_fips_from_state_code(self, state_code: str) -> str:
         state_fips_code = [
@@ -268,8 +301,10 @@ class PopulationGenerator:
                 search_result = HTTPRequestHandler.search_results.get_latest_result()
                 try:
                     response_obj = {
-                        'selected_product_category': "TBD",
-                        'population_size': search_result.population_size
+                        'state': search_result.state_code,
+                        'year': search_result.year,
+                        'population_size': search_result.population_size,
+                        'selected_product_category': search_result.product_category
                     }
                     response_str = json.dumps(response_obj).encode("utf8")
                     self.send_response(200)
@@ -278,14 +313,13 @@ class PopulationGenerator:
                     self.end_headers()
                     self.wfile.write(response_str)
                 except Exception:
-                    print("in except: ", search_result)
-                    self.send_error(500, "The user probably hasn't generated info yet")
+                    self.send_error(404, "The user probably hasn't submitted info yet")
 
         return HTTPRequestHandler
 
     def run_server(self) -> None:
         host = "localhost"
-        port = 8000
+        port = 6000
         server_address = (host, port)
         my_server = HTTPServer(
             server_address=server_address,
@@ -306,7 +340,7 @@ if __name__ == '__main__':
         metavar='input.csv',
         type=str,
         nargs="?",
-        help='Path to csv with input_year and input_state columns')
+        help='Path to csv with input_year, input_state, and input_product_category columns')
     args = parser.parse_args()
 
     search_results = SearchResults()
