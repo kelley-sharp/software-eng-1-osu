@@ -13,26 +13,23 @@ import json
 
 
 class SearchResult:
-    def __init__(self, id: int, year: int, state_code: str, population_size: int, product_category: str):
-        self.id = id
-        self.year = year
-        self.state_code = state_code
-        self.population_size = population_size
-        self.product_category = product_category
+    def __init__(self, result_object):
+        self.id = result_object.id
+        self.year = result_object.year
+        self.state_code = result_object.state_code
+        self.population_size = result_object.population_size
+        self.product_category = result_object.product_category
 
 
 class SearchResults:
     def __init__(self):
         self.latest_search_result_id = 0
-        self.data = []  # store a list of search results
+        # store a list of search results
+        self.data = [] 
 
-    def add_result(self, year: int, state_code: str, population_size: int, product_category: str) -> None:
+    def add_result(self, result_object) -> None:
         self.latest_search_result_id += 1
-        result = SearchResult(id=self.latest_search_result_id,
-                              year=year,
-                              state_code=state_code,
-                              population_size=population_size,
-                              product_category=product_category)
+        result = SearchResult(result_object)
         self.data.append(result)
 
     def get_latest_result(self) -> SearchResult:
@@ -72,20 +69,14 @@ class PopulationGenerator:
             self.handle_export_csv()
 
     def start(self) -> None:
-        # Run server (in its own thread)
         self.run_server()
         # Start up the GUI
         self.window.mainloop()
 
     def get_product_categories(self) -> list:
-        # url = "localhost:8000/cgi-bin/categories"
-        # response = requests.get(url)
-        # return response
-
-        # temporary process to emulate response from Kelley R.'s server
-        with open('./sample_product_categories.json') as jsonfile:
-            data = json.load(jsonfile)
-            product_categories = tuple(data['sample_product_categories'])
+        url = "http://localhost:8000/categories"
+        response = requests.get(url)
+        product_categories = tuple(response.json())
 
         return product_categories
 
@@ -257,10 +248,13 @@ class PopulationGenerator:
             return
 
         body = response.json()
-        self.search_results.add_result(year=int(year),
-                                       state_code=state_code,
-                                       population_size=int(body[1][1]),
-                                       product_category=product_category)
+
+        result_object = {"year": int(year),
+                         "state_code": state_code,
+                         "population_size": int(body[1][1]),
+                         "product_category": product_category}
+
+        self.search_results.add_result(result_object)
         search_result = search_results.get_latest_result()
         table_values = (search_result.year, search_result.state_code, search_result.population_size, search_result.product_category)
         self.table.delete(self.table.get_children())
@@ -343,6 +337,6 @@ if __name__ == '__main__':
         help='Path to csv with input_year, input_state, and input_product_category columns')
     args = parser.parse_args()
 
-    search_results = SearchResults()
-    population_generator = PopulationGenerator(filename=args.input_csv, search_results=search_results)
-    population_generator.start()
+    s = SearchResults()
+    p = PopulationGenerator(filename=args.input_csv, search_results=search_results)
+    p.start()
