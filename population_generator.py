@@ -90,6 +90,7 @@ class PopulationGenerator:
         self.window.geometry("%dx%d+%d+%d" % (width, height, x, y))
 
     def create_search_form(self) -> None:
+
         search_form = tk.LabelFrame(master=self.window,
                                     text="Search Variables")
         search_frame = tk.Frame(master=search_form)
@@ -337,6 +338,6 @@ if __name__ == '__main__':
         help='Path to csv with input_year, input_state, and input_product_category columns')
     args = parser.parse_args()
 
-    s = SearchResults()
-    p = PopulationGenerator(filename=args.input_csv, search_results=search_results)
-    p.start()
+    search_results = SearchResults()
+    population_generator = PopulationGenerator(filename=args.input_csv, search_results=search_results)
+    population_generator.start()
