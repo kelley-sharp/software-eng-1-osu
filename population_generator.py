@@ -13,23 +13,24 @@ import json
 
 
 class SearchResult:
-    def __init__(self, result_object):
-        self.id = result_object.id
-        self.year = result_object.year
-        self.state_code = result_object.state_code
-        self.population_size = result_object.population_size
-        self.product_category = result_object.product_category
+    def __init__(self, result_object: dict, result_id: int):
+        self.id = result_id
+        self.year = result_object["year"]
+        self.state_code = result_object["state_code"]
+        self.population_size = result_object["population_size"]
+        self.product_category = result_object["product_category"]
 
 
 class SearchResults:
     def __init__(self):
         self.latest_search_result_id = 0
         # store a list of search results
-        self.data = [] 
+        self.data = []
 
-    def add_result(self, result_object) -> None:
+    def add_result(self, result_object: dict) -> None:
         self.latest_search_result_id += 1
-        result = SearchResult(result_object)
+        result = SearchResult(result_object=result_object,
+                              result_id=self.latest_search_result_id)
         self.data.append(result)
 
     def get_latest_result(self) -> SearchResult:
@@ -44,6 +45,7 @@ class PopulationGenerator:
         # main window
         self.window = tk.Tk()
         self.window.title("Kelley's Population Generator")
+        self.purpose_text = "Enter a Year and State to See the Population Size!"
         self.configure_window()
         # search form
         self.search_results = search_results
@@ -70,6 +72,9 @@ class PopulationGenerator:
 
     def start(self) -> None:
         self.run_server()
+        # set up message explaining purpose
+        msg = tk.Label(self.window, text=self.purpose_text)
+        msg.grid(row=0, column=0)
         # Start up the GUI
         self.window.mainloop()
 
@@ -125,17 +130,17 @@ class PopulationGenerator:
                                height=0,
                                fg="blue",
                                command=self.handle_submit)
-
-        input_year_label.grid(row=0, column=0)
-        self.year_combobox.grid(row=0, column=1)
-        input_state_label.grid(row=1, column=0)
-        self.state_code_combobox.grid(row=1, column=1)
-        input_product_category_label.grid(row=2, column=0)
-        self.product_category_combobox.grid(row=2, column=1)
-        btn_import.grid(row=3, column=0, pady=10, sticky="w")
-        btn_submit.grid(row=3, column=1, pady=10, sticky="e")
-        search_frame.grid(row=0, column=0, padx=20, pady=10, sticky="n")
-        search_form.grid(row=0, column=0, padx=20, pady=30, sticky="n")
+        # Mount elements on the window
+        input_year_label.grid(row=1, column=0)
+        self.year_combobox.grid(row=1, column=1)
+        input_state_label.grid(row=2, column=0)
+        self.state_code_combobox.grid(row=2, column=1)
+        input_product_category_label.grid(row=3, column=0)
+        self.product_category_combobox.grid(row=3, column=1)
+        btn_import.grid(row=4, column=0, pady=10, sticky="w")
+        btn_submit.grid(row=4, column=1, pady=10, sticky="e")
+        search_frame.grid(row=1, column=0, padx=20, pady=10, sticky="n")
+        search_form.grid(row=1, column=0, padx=20, pady=30, sticky="n")
 
     def create_data_output_area(self) -> None:
         data_area = tk.LabelFrame(master=self.window, text="Output Data")
@@ -180,11 +185,11 @@ class PopulationGenerator:
                                bg="green",
                                fg="blue",
                                command=self.handle_export_csv)
-
-        self.table.grid(row=1, column=1, padx=20, pady=0, sticky="n")
-        btn_export.grid(row=2, column=1, pady=10, padx=20, sticky="e")
-        data_frame.grid(row=1, column=0, padx=20, pady=30, sticky="n")
-        data_area.grid(row=1, column=0, padx=20, pady=30, sticky="n")
+        # mount elements on the window
+        self.table.grid(row=2, column=1, padx=20, pady=0, sticky="n")
+        btn_export.grid(row=3, column=1, pady=10, padx=20, sticky="e")
+        data_frame.grid(row=2, column=0, padx=20, pady=30, sticky="n")
+        data_area.grid(row=2, column=0, padx=20, pady=30, sticky="n")
 
     def handle_import_csv(self, filename: str = None):
         if not filename:
@@ -259,7 +264,6 @@ class PopulationGenerator:
         search_result = search_results.get_latest_result()
         table_values = (search_result.year, search_result.state_code, search_result.population_size, search_result.product_category)
         self.table.delete(self.table.get_children())
-        # search_result_id += 1
         self.table.insert(parent='',
                           index=0,
                           id=str(search_result.id),
